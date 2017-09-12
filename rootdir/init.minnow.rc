@@ -1,0 +1,176 @@
+import init.minnow.usb.rc
+import init.minnow.bt.rc
+import init.minnow.motfactorytest.rc
+import init.minnow.cust.rc
+
+on early-init
+  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1000000
+  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq  300000
+  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor userspace
+  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed 1000000
+  mkdir /pds 0775 system system
+  mkdir /customize 0775 system system
+
+on init
+  # pstore/annotate-ramoops previous bootreason log
+  chown system log /sys/fs/pstore/annotate-ramoops
+  chmod 0440 /sys/fs/pstore/annotate-ramoops
+
+  symlink /sdcard /mnt/sdcard
+  symlink /sdcard /storage/sdcard0
+
+on fs
+  mount_all /fstab.minnow
+  restorecon_recursive /pds
+  restorecon_recursive /customize
+
+  chown system system /sys/devices/platform/omapdss/display0/vsync_events_enabled
+  chown system system /sys/devices/platform/omapdss/display0/interactivemode
+  chown system system /sys/devices/ocp.2/i2c.8/i2c-2/2-0036/alert_threshold
+  chown system system /sys/devices/0.c55-ctrl/enable
+  chown system system /sys/devices/0.bq5105x-ctrl/charge_reduce/value
+  chown system system /sys/devices/ocp.2/i2c.6/i2c-0/0-004a/interactivemode
+  chown system system /sys/class/leds/lcd-backlight/interactive
+
+on property:persist.log.m4uart.enable=1
+    start m4uart
+
+on property:persist.log.m4uart.enable=0
+    stop m4uart
+
+service m4uart /system/bin/m4uart
+  class main
+  disabled
+
+on post-fs-data
+  # we will remap this as /mnt/sdcard with the sdcard fuse tool
+  mkdir /data/media 0770 media_rw media_rw
+  chown media_rw media_rw /data/media
+
+  chown audio audio /dev/ttyO0
+  chown audio audio /sys/devices/0.c55-ctrl/gpio_ap_int/edge
+  chown audio audio /sys/devices/0.c55-ctrl/gpio_ap_int/value
+  chown audio audio /sys/devices/0.c55-ctrl/gpio_c55_int/value
+  chown audio audio /sys/devices/0.c55-ctrl/fw_verified
+  chown audio audio /sys/devices/0.c55-ctrl/enable
+
+  mkdir /data/adspd/ 0770 audio audio
+  mkdir /data/adspd/1 0770 audio audio
+
+  #STOPSHIP : Pulse vibrator for temporary sign-of-life
+  write /sys/class/timed_output/vibrator/enable 200
+
+  # TCMD Engine Support
+  chown mot_tcmd:system /dev/block/platform/ocp.2/mmcblk0p7
+  chmod 660 /dev/block/platform/ocp.2/mmcblk0p7
+  write /proc/config/reload 1
+
+  # Battery Health Daemon support
+  mkdir /data/misc/power_supply_logger 0750 root log
+  mkdir /pds/battery 0750 root log
+
+service adspd /system/bin/adspd /dev/ttyO0
+   class core
+   socket adspdsock stream 0660 system audio
+   user root
+   group audio input system
+
+on early-boot
+    start pvrsrv
+
+on boot
+    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
+    write /proc/sys/vm/min_free_kbytes 3072
+
+    # disable network time update
+    setprop config.disable_networktime true
+
+service m4setup /system/bin/m4setup
+    user root
+    oneshot
+
+on property:sys.boot_completed=1
+  write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+  write /sys/devices/system/cpu/cpufreq/interactive/target_loads 50
+
+service pvrsrv /system/bin/pvrsrvctl_SGX530_125 --start --no-module
+    user root
+    oneshot
+
+service ramconsole-touch /system/bin/touch_ramoops.sh
+     user root
+     group root log
+     oneshot
+
+on property:hw.m4.download_complete=true
+    start m4setup
+    start ramconsole-touch
+
+service bugreport /system/bin/dumpstate -d -p -B \
+        -o /data/data/com.android.shell/files/bugreports/bugreport
+    class main
+    disabled
+    oneshot
+
+service clockwork_proxy /system/bin/ClockworkProxy
+    class main
+
+service mmi-boot-sh /system/bin/init.mmi.boot.sh
+    user root
+    group root net_bt_stack log
+    oneshot
+
+#
+# Format the following partitions if they are wiped from bootloader when user decides
+# to unlock his device.
+#
+# Partitions:
+# ------------
+# /dev/block/mmcblk0p15         /cache       ext4
+# /dev/block/mmcblk0p17         /data        ext4
+# /dev/block/mmcblk0p16         /customize   ext4
+service setup_fs /system/bin/setup_fs /dev/block/platform/ocp.2/mmc.13/mmcblk0p17 /dev/block/platform/ocp.2/mmc.13/mmcblk0p15 /dev/block/platform/ocp.2/mmc.13/mmcblk0p16
+	class core
+	user root
+	group root
+	oneshot
+
+service mbm_spy /system/bin/mbm_spy
+    user root
+    group root system
+    oneshot
+
+on property:sys.boot_completed=1
+    start mmi-boot-sh
+
+on property:ro.mmi_complete=1
+    start mbm_spy
+
+on property:hw.cpu.throttle.state=1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq  600000
+
+on property:hw.cpu.throttle.state=0
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1000000
+
+service wpa_supplicant /system/bin/wpa_supplicant \
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant_overlay.conf \
+    -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
+    #   we will start as root and wpa_supplicant will switch to user wifi
+    #   after setting up the capabilities required for WEXT
+    #   user wifi
+    #   group wifi inet keystore
+    class main
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+
+service dhcpcd_wlan0 /system/bin/dhcpcd -aABDKL
+    class main
+    disabled
+    oneshot
+
+service iprenew_wlan0 /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot

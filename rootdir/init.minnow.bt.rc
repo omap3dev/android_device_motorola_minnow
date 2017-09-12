@@ -1,0 +1,19 @@
+on post-fs-data
+  chmod 0660 /dev/ttyO1
+  chown bluetooth net_bt_stack /dev/ttyO1
+
+#shared transport user space mgr service for Bluetooth
+service uim /system/bin/uim-sysfs
+  class core
+  user bluetooth
+  group bluetooth net_bt_admin
+
+service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
+    class late_start
+    disabled
+    oneshot
+
+service iprenew_bt-pan /system/bin/dhcpcd -n
+    class late_start
+    disabled
+    oneshot

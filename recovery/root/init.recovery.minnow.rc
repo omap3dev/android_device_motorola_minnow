@@ -1,0 +1,3 @@
+on early-init
+write /sys/class/timed_output/vibrator/enable 200
+ 
