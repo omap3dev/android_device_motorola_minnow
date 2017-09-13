@@ -18,5 +18,6 @@
 #define _BDROID_BUILDCFG_H
 
 #define BTM_DEF_LOCAL_NAME   "Moto 360"
+#define BLE_INCLUDED TRUE
 
 #endif

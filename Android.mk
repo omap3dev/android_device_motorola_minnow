@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_PATH := $(call my-dir)
 
 ifeq ($(TARGET_DEVICE),minnow)
-
-ifneq ($(TARGET_SIMULATOR),true)
-include $(call all-makefiles-under,$(LOCAL_PATH))
+LOCAL_PATH := $(call my-dir)
 endif
-
-endif
+include $(call first-makefiles-under,$(LOCAL_PATH))
