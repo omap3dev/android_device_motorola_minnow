@@ -13,37 +13,30 @@
 # limitations under the License.
 
 # Get non-open-source specific aspects
-$(call inherit-product-if-exists, vendor/motorola/minnow/minnow-vendor.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
-#$(call inherit-product, build/target/product/full_base.mk)
+#$(call inherit-product, build/target/product/full.mk)
+$(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 LOCAL_PATH := device/motorola/minnow
 
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := hdpi
+TARGET_BOARD_OMAP_CPU := 3630
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 320
 TARGET_SCREEN_WIDTH  := 320
 
-PRODUCT_PACKAGES := \
-    libwpa_client \
-    hostapd \
-    dhcpcd.conf \
-    wpa_supplicant \
-    wpa_supplicant.conf
-
-# Filesystem management tools
-PRODUCT_PACKAGES += \
-	e2fsck
-    
-    
+#device/motorola/minnow/rootdir/init.minnow.cust.rc:root/init.minnow.cust.rc \ 
 # Device specific init scripts
+#PRODUCT_COPY_FILES += \
+#    device/motorola/minnow/rootdir/init.minnow.rc:root/init.minnow.rc \
+#    device/motorola/minnow/rootdir/init.minnow.usb.rc:root/init.minnow.usb.rc \
+#    device/motorola/minnow/rootdir/ueventd.minnow.rc:root/ueventd.minnow.rc
+
+#PRODUCT_COPY_FILES += \
+#device/motorola/minnow/rootdir/fstab.minnow:root/fstab.minnow
+
 PRODUCT_COPY_FILES += \
-device/motorola/minnow/rootdir/init.minnow.cust.rc:root/init.minnow.cust.rc \
-device/motorola/minnow/rootdir/fstab.minnow:root/fstab.minnow \
-device/motorola/minnow/rootdir/init.minnow.rc:root/init.minnow.rc \
-device/motorola/minnow/rootdir/init.minnow.usb.rc:root/init.minnow.usb.rc \
-device/motorola/minnow/rootdir/ueventd.minnow.rc:root/ueventd.minnow.rc
+device/motorola/minnow/rootdir/init.minnow.usb.rc:root/init.minnow.usb.rc 
 
 # Ramdisk files
 PRODUCT_COPY_FILES += \
@@ -79,3 +72,60 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml
 #    frameworks/native/data/etc/wearable_core_hardware.xml:system/etc/permissions/wearable_core_hardware.xml
+
+PRODUCT_COPY_FILES += \
+    frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml
+
+PRODUCT_PACKAGES += \
+    libwpa_client \
+    hostapd \
+    dhcpcd.conf \
+    dhcpcd \
+    wpa_supplicant \
+    wpa_supplicant.conf \
+    
+PRODUCT_PACKAGES += \
+    libGLES_trace \
+    libjhead \
+    libjhead_jni
+    
+    # Ramdisk
+PRODUCT_PACKAGES += \
+    fstab.minnow \
+    init.minnow.rc \
+    ueventd.minnow.rc
+
+# Filesystem management tools
+PRODUCT_PACKAGES += \
+    e2fsck
+    
+# Bluetooth
+PRODUCT_PACKAGES += \
+    uim-sysfs \
+    libbt-vendor
+    
+    # Disable dirty regions invalidation
+ADDITIONAL_BUILD_PROPERTIES += \
+    debug.hwui.render_dirty_regions=false
+
+# GPU producer to CPU consumer not supported
+ADDITIONAL_BUILD_PROPERTIES += \
+    ro.bq.gpu_to_cpu_unsupported=1
+    
+ADDITIONAL_BUILD_PROPERTIES += \
+    ro.build.selinux=0
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.opengles.version=131072 \
+    ro.build.selinux=0
+    
+ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+ADDITIONAL_DEFAULT_PROPERTIES += ro.adb.secure=0
+ADDITIONAL_DEFAULT_PROPERTIES += sys.usb.config=usbnet,adb
+ADDITIONAL_DEFAULT_PROPERTIES += persist.sys.usb.config=adb
+    
+$(call inherit-product-if-exists, vendor/motorola/minnow/minnow-vendor.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
+    

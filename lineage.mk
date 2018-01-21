@@ -5,7 +5,8 @@
 PRODUCT_RELEASE_NAME := MOTO360
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_phone.mk)
+$(call inherit-product, vendor/cm/config/common_mini_phone.mk)
+$(call inherit-product, build/target/product/full_base.mk)
 
 # Inherit device configuration
 $(call inherit-product, device/motorola/minnow/full_minnow.mk)

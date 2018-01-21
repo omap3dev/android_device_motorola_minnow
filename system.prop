@@ -3,7 +3,7 @@
 #
 
 ro.adb.secure=0
-persists.sys.usb.config=adb
+sys.usb.config=usbnet,adb
 hw.cpu.throttle.state=0
 ro.bt.bdaddr_path=/pds/bluetooth/bdaddr.txt
 ro.sf.lcd_density=200

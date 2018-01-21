@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-ifeq ($(TARGET_DEVICE),minnow)
 LOCAL_PATH := $(call my-dir)
+ifeq ($(TARGET_DEVICE),minnow)
+include $(call all-subdir-makefiles,$(LOCAL_PATH))
+include $(CLEAR_VARS)
 endif
-include $(call first-makefiles-under,$(LOCAL_PATH))

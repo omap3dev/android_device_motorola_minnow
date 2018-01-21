@@ -1,6 +1,0 @@
-#Change permissions for pds file and directories
-on post-fs
-    chmod 0644 /pds/ftm/
-    chmod 0644 /pds/ftm/elem_file
-    chmod 0644 /pds/device_id
-    chmod 0644 /pds/device_id/id_file

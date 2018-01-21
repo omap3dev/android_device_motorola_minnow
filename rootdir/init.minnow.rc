@@ -46,8 +46,6 @@ on post-fs-data
   # we will remap this as /mnt/sdcard with the sdcard fuse tool
   mkdir /data/media 0770 media_rw media_rw
   chown media_rw media_rw /data/media
-  chmod 0660 /dev/ttyO1
-  chown bluetooth net_bt_stack /dev/ttyO1
 
   chown audio audio /dev/ttyO0
   chown audio audio /sys/devices/0.c55-ctrl/gpio_ap_int/edge
@@ -95,8 +93,10 @@ on property:sys.boot_completed=1
   write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
   write /sys/devices/system/cpu/cpufreq/interactive/target_loads 50
 
-service pvrsrv /system/bin/pvrsrvctl_SGX530_125 --start --no-module
+service pvrsrv /system/bin/pvrsrvctl_SGX530_125 --start --no-module --dump-debug 
+    class core
     user root
+    group root
     oneshot
 
 service ramconsole-touch /system/bin/touch_ramoops.sh
@@ -121,21 +121,6 @@ service mmi-boot-sh /system/bin/init.mmi.boot.sh
     user root
     group root net_bt_stack log
     oneshot
-    
-service uim /system/bin/uim-sysfs
-  class core
-  user bluetooth
-  group bluetooth net_bt_admin
-
-service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
-    class late_start
-    disabled
-    oneshot
-
-service iprenew_bt-pan /system/bin/dhcpcd -n
-    class late_start
-    disabled
-    oneshot
 
 #
 # Format the following partitions if they are wiped from bootloader when user decides
@@ -146,11 +131,11 @@ service iprenew_bt-pan /system/bin/dhcpcd -n
 # /dev/block/mmcblk0p15         /cache       ext4
 # /dev/block/mmcblk0p17         /data        ext4
 # /dev/block/mmcblk0p16         /customize   ext4
-service setup_fs /system/bin/setup_fs /dev/block/platform/ocp.2/mmc.13/mmcblk0p17 /dev/block/platform/ocp.2/mmc.13/mmcblk0p15 /dev/block/platform/ocp.2/mmc.13/mmcblk0p16
-	class core
-	user root
-	group root
-	oneshot
+#service setup_fs /system/bin/setup_fs /dev/block/platform/ocp.2/mmc.13/mmcblk0p17 /dev/block/platform/ocp.2/mmc.13/#mmcblk0p15 /dev/block/platform/ocp.2/mmc.13/mmcblk0p16
+#	class core
+#	user root
+#	group root
+#	oneshot
 
 service mbm_spy /system/bin/mbm_spy
     user root

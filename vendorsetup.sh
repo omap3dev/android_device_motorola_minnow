@@ -22,3 +22,4 @@
 
 add_lunch_combo full_minnow-eng
 add_lunch_combo lineage_minnow-userdebug
+add_lunch_combo lineage_minnow-eng
