@@ -67,7 +67,7 @@ TARGET_SPECIFIC_HEADER_PATH += device/motorola/minnow/include
 
 TARGET_PROVIDES_INIT_TARGET_RC := true
 
-TARGET_KERNEL_SOURCE := kernel/motorola/minnow
+TARGET_KERNEL_SOURCE := kernel/motorola/omap3
 TARGET_KERNEL_CONFIG := minnow_defconfig
 BOARD_KERNEL_IMAGE_NAME := zImage-dtb
 KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
